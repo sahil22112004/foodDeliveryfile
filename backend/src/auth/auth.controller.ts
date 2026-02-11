@@ -1,0 +1,41 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+} from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { CreateAuthDto } from './dto/create-auth.dto';
+
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('/register')
+  create(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.create(createAuthDto);
+  }
+
+   @Post('login')
+  login(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.login(createAuthDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.authService.findAll();
+  }
+
+  @Get('user/:id')
+  findOne(@Param('id') id: string) {
+    return this.authService.findOne(id);
+  }
+
+  @Delete('user/:id')
+  remove(@Param('id') id: string) {
+    return this.authService.remove(id);
+  }
+}
