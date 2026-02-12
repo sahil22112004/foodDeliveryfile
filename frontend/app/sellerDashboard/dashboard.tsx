@@ -13,26 +13,25 @@ import Card from './card/card';
 import { useSnackbar } from 'notistack';
 import { logout } from '../redux/slice/authSlice';
 import { useRouter } from 'next/navigation';
+import { uploadToCloudinary } from '../component/cloudnairy'
 
 
 export default function dashboard() {
 
-     const dispatch = useDispatch<AppDispatch>();
-  const router = useRouter();
+    const dispatch = useDispatch<AppDispatch>();
+    const router = useRouter();
 
     const [dishes, setdishes] = useState<any[]>([])
     const { enqueueSnackbar } = useSnackbar()
-    const [restaurantinfo,setRestauarantInfo]= useState<any>({})
+    const [restaurantinfo, setRestauarantInfo] = useState<any>({})
 
 
-    const getRestaurantInfo = async()=>{
+    const getRestaurantInfo = async () => {
         const restaurantInfo = await apiRestaurentforUser(currrentUser?.id)
         setRestauarantInfo(restaurantInfo)
 
     }
 
-    
-    
     const currrentUser = useSelector((state: RootState) => state.auth.currentUser)
 
     const fetchsellerDishes = async () => {
@@ -44,26 +43,25 @@ export default function dashboard() {
         fetchsellerDishes()
         getRestaurantInfo()
     }, [currrentUser])
-    
+
 
     const restaurentSchema = z.object({
         restaurantname: z.string().min(3, "Name must be at least 3 chars"),
         description: z.string().min(1, "discription cannot be empty"),
-        image: z.string()
-
+        image: z.any().refine((files) => files?.length > 0, "File is required"),
 
     });
     type restaurentFormData = z.infer<typeof restaurentSchema>;
 
     const dishSchema = z.object({
         dishname: z.string().min(3, "Name must be at least 3 chars"),
-        description: z.string().min(1, "Price must be greater than 0"),
+        description: z.string().min(1, "Description must be greater than 0"),
         price: z.coerce.number().min(1, "Price must be greater than 0"),
-        image: z.string()
+        image: z.any().refine((files) => files?.length > 0, "File is required"),
 
     });
     type diishFormData = z.infer<typeof dishSchema>;
-    console.log('res infp',restaurantinfo)
+    console.log('res infp', restaurantinfo)
 
 
     const {
@@ -72,6 +70,7 @@ export default function dashboard() {
         formState: { errors },
         reset,
         watch,
+        setValue
     } = useForm<restaurentFormData>({
         resolver: zodResolver(restaurentSchema),
     });
@@ -91,55 +90,76 @@ export default function dashboard() {
 
 
     const onSubmitRestaurent = async (restaurentInfo: any) => {
-        const RestaurentInfo = {
-            ...restaurentInfo,
-            userId: currrentUser?.id
+        const fileToUpload = restaurentInfo.image[0];
+        const uploadedUrl = await uploadToCloudinary(fileToUpload);
+        console.log('uploadedUrl', uploadedUrl)
+        if (uploadedUrl?.length == 0) {
+            const RestaurentInfo = {
+                ...restaurentInfo,
+                image: uploadedUrl,
+                userId: currrentUser?.id
+            }
+            console.log(RestaurentInfo)
+            try {
+                const res = await apiCreateRestaurent(RestaurentInfo)
+                reset()
+                setAddRestaurentmodal(false)
+                fetchsellerDishes()
+                window.location.reload()
+            } catch (error: any) {
+                console.log(error)
+            }
+        } else {
+            enqueueSnackbar("failed to upload image", { variant: "error" })
+            return
         }
-        console.log(RestaurentInfo)
-        try {
-            const res = await apiCreateRestaurent(RestaurentInfo)
-            reset()
-            setAddRestaurentmodal(false)
-            fetchsellerDishes()
-            window.location.reload()
-        } catch (error: any) {
-            console.log(error)
-        }
+
 
     }
     const onSubmitDish = async (dishInfo: any) => {
-        const DishInfo = {
-            ...dishInfo,
-            userId: currrentUser?.id,
-            restaurantId: restaurantinfo?.id
-        }
-        console.log(DishInfo)
-        try {
-            const res = await apiCreateDish(DishInfo)
-            dishReset()
-            setAddDishmodal(false)
-            fetchsellerDishes()
+        console.log('working')
+        const fileToUpload = dishInfo.image[0];
+        const uploadedUrl = await uploadToCloudinary(fileToUpload);
+        if (uploadedUrl) {
+            const DishInfo = {
+                ...dishInfo,
+                image: uploadedUrl,
+                userId: currrentUser?.id,
+                restaurantId: restaurantinfo?.id
+            }
+            console.log(DishInfo)
+            try {
+                const res = await apiCreateDish(DishInfo)
+                dishReset()
+                setAddDishmodal(false)
+                fetchsellerDishes()
 
 
-        } catch (error: any) {
+            } catch (error: any) {
+                console.log(error)
 
+            }
+
+        }else{
+            enqueueSnackbar("failed to upload image", { variant: "error" })
+            return
         }
 
     }
 
-    const handleAddDishModal = ()=>{
-        if (Object.keys(restaurantinfo).length === 0){
-             enqueueSnackbar("register Restaurant first to add Dish", {variant: "error" })
-        }else{
+    const handleAddDishModal = () => {
+        if (Object.keys(restaurantinfo).length === 0) {
+            enqueueSnackbar("register Restaurant first to add Dish", { variant: "error" })
+        } else {
             setAddDishmodal(true)
 
         }
     }
     const handleLogout = () => {
-          dispatch(logout());
-          router.push("/auth/login");
-        };
-    
+        dispatch(logout());
+        router.push("/auth/login");
+    };
+
 
     return (
         <>
@@ -169,12 +189,10 @@ export default function dashboard() {
                         />
                         {errors.description && <p className="error">{errors.description.message}</p>}
 
-                        <input
-                            type="text"
-                            placeholder="image url"
-                            {...register("image")}
-                        />
-                        {errors.image && <p className="error">{errors.image.message}</p>}
+
+
+                        <input type="file" {...register("image")} className="block" />
+                        {errors.image && <p className="text-red-500">{errors.image.message as string}</p>}
 
                         <div className='formbuttons'>
                             {Object.keys(restaurantinfo).length === 0 && <button type='submit'>Add Restaurent</button>}
@@ -199,7 +217,7 @@ export default function dashboard() {
                             type="number"
                             placeholder="Price"
                             {...dishRegister("price")}
-                        />
+                        />length
                         {disherrors.price && (
                             <p className="error">{disherrors.price.message}</p>
                         )}
@@ -211,15 +229,11 @@ export default function dashboard() {
                         />
                         {disherrors.description && <p className="error">{disherrors.description.message}</p>}
 
-                        <input
-                            type="text"
-                            placeholder="image url"
-                            {...dishRegister("image")}
-                        />
-                        {disherrors.image && <p className="error">{disherrors.image.message}</p>}
+                        <input type="file" {...dishRegister("image")} className="block" />
+                        {errors.image && <p className="text-red-500">{errors.image.message as string}</p>}
 
                         <div className='formbuttons'>
-                            <button>Add Dish</button>
+                            <button type='submit'>Add Dish</button>
                             <button onClick={() => setAddDishmodal(false)} >Cancel</button>
                         </div>
 

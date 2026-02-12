@@ -1,6 +1,6 @@
-const uploadToCloudinary = async (file: File): Promise<string | null> => {
-    const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
-    const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
+export const uploadToCloudinary = async (file: File): Promise<string | null> => {
+    const CLOUDINARY_UPLOAD_PRESET = 'chat_app_preset';
+    const CLOUDINARY_CLOUD_NAME = 'dtivbuxxm';
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET ?? "");
@@ -17,6 +17,7 @@ const uploadToCloudinary = async (file: File): Promise<string | null> => {
         );
 
         const data = await response.json();
+        console.log('working',data)
 
         if (data.secure_url) {
             return data.secure_url;
@@ -28,3 +29,6 @@ const uploadToCloudinary = async (file: File): Promise<string | null> => {
         throw error;
     }
 };
+
+
+
