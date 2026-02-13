@@ -151,7 +151,7 @@ function Login() {
 
 
             <Typography className="signup-text">
-              New to Stack OverFlow? <Link href="/auth/register">Create an account</Link>
+              New to Food APP? <Link href="/auth/register">Create an account</Link>
             </Typography>
 
           </form>

@@ -1,19 +1,15 @@
 FROM node:22-alpine
 
-WORKDIR /usr/src/main
+WORKDIR /app
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
-COPY .env .env.development ./
-
 RUN npm run build
 
-EXPOSE 3001
+EXPOSE 4000
 
-CMD ["npm", "run", "start:dev"]
-
-
+CMD [ "npm", "run", "start:dev" ]

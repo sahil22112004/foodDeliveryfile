@@ -71,6 +71,7 @@ const authSlice = createSlice({
         existingItem.quantity += 1;
       } else {
         console.log('coming in else')
+        state.cart = state.cart.filter((dish:any)=>dish.restaurantId==action.payload.restaurantId)
         state.cart?.push({...product, quantity: 1});
       }
       console.log("CART AFTER:",state.cart);

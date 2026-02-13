@@ -8,16 +8,16 @@ import { Dish } from './src/dishes/entities/dish.entity';
 
 config();
 
-const datasource :DataSourceOptions & SeederOptions={
+const datasource: DataSourceOptions & SeederOptions = {
   type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'postgres',
-  password: 'admin',
-  database: 'foodApp',
-  entities: [User,Restaurent,Dish],
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  entities: [User, Restaurent, Dish],
   migrations: ['src/migrations/*.ts'],
-  synchronize: false, 
+  synchronize: false,
   seeds: [],
 
 }

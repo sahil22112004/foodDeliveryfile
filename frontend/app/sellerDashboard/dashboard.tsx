@@ -93,7 +93,7 @@ export default function dashboard() {
         const fileToUpload = restaurentInfo.image[0];
         const uploadedUrl = await uploadToCloudinary(fileToUpload);
         console.log('uploadedUrl', uploadedUrl)
-        if (uploadedUrl?.length == 0) {
+        if (uploadedUrl) {
             const RestaurentInfo = {
                 ...restaurentInfo,
                 image: uploadedUrl,
@@ -191,7 +191,7 @@ export default function dashboard() {
 
 
 
-                        <input type="file" {...register("image")} className="block" />
+                        <input type="file" accept="image/*" {...register("image")} className="block" />
                         {errors.image && <p className="text-red-500">{errors.image.message as string}</p>}
 
                         <div className='formbuttons'>
@@ -229,7 +229,7 @@ export default function dashboard() {
                         />
                         {disherrors.description && <p className="error">{disherrors.description.message}</p>}
 
-                        <input type="file" {...dishRegister("image")} className="block" />
+                        <input type="file" accept="image/*"  {...dishRegister("image")} className="block" />
                         {errors.image && <p className="text-red-500">{errors.image.message as string}</p>}
 
                         <div className='formbuttons'>
